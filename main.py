@@ -6,7 +6,7 @@ import json
 from decimal import Decimal
 from datetime import datetime
 
-# 数据库相关
+# 数据库相关 可以单独使用配置文件
 DB_CONFIG = {
     'host': '10.1.8.13',
     'user': 'pi',
