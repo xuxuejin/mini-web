@@ -29,9 +29,9 @@ def get_db_connection():
         db=DB_CONFIG['db'],
         charset='utf8mb4',
         # 查询结果会返回 字典
-        cursorclass=pymysql.cursors.DictCursor,
+        # cursorclass=pymysql.cursors.DictCursor,
         # 指定转换器
-        conv={pymysql.converters.FIELD_TYPE.DECIMAL: str}
+        # conv={pymysql.converters.FIELD_TYPE.DECIMAL: str}
     )
 
 
@@ -41,6 +41,7 @@ def router(path):
         def inner_router():
             # some code else
             return func()
+
         api_router[path] = inner_router
         return inner_router
 
@@ -50,12 +51,14 @@ def router(path):
 # 定义处理数据函数
 @router(path='/api/v1/products')
 def products():
-
     response = {
         'code': 0,
         'message': '',
         'data': []
     }
+
+    db_connect = None
+    cursor = None
 
     try:
         db_connect = get_db_connection()
