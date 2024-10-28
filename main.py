@@ -2,14 +2,19 @@ import socket
 import os
 from threading import Thread
 import pymysql
+import pymysql.cursors  # 单独导入 cursors 模块，为了防止 IDE 有警告报错
 import json
-from decimal import Decimal
-from datetime import datetime
 
 # 数据库相关 可以单独使用配置文件
+# DB_CONFIG = {
+#     'host': '10.1.8.13',
+#     'user': 'pi',
+#     'password': 'xxj123',
+#     'db': 'minics'
+# }
 DB_CONFIG = {
-    'host': '10.1.8.13',
-    'user': 'pi',
+    'host': '192.168.100.139',
+    'user': 'root',
     'password': 'xxj123',
     'db': 'minics'
 }
@@ -27,11 +32,7 @@ def get_db_connection():
         user=DB_CONFIG['user'],
         password=DB_CONFIG['password'],
         db=DB_CONFIG['db'],
-        charset='utf8mb4',
-        # 查询结果会返回 字典
-        # cursorclass=pymysql.cursors.DictCursor,
-        # 指定转换器
-        # conv={pymysql.converters.FIELD_TYPE.DECIMAL: str}
+        charset='utf8mb4'
     )
 
 
@@ -67,8 +68,12 @@ def products():
         cursor.execute(sql_str)
         result = cursor.fetchall()
 
+        list_data = []
+        for row in result:
+            list_data.append({'name': row[0], 'price': str(row[1]), 'image_url': row[2]})
+
         if result:
-            response['data'] = result
+            response['data'] = list_data
             response['message'] = 'Products retrieved successfully'
         else:
             response['message'] = 'No products found'
@@ -122,21 +127,6 @@ def get_content_type(file_path):
     ext = os.path.splitext(file_name)[1]
 
     return content_type_map.get(ext, 'text/plain')
-
-
-# 通用序列化工具
-def serialize_data(data):
-    """递归处理数据中的特殊类型"""
-    if isinstance(data, list):
-        return [serialize_data(item) for item in data]
-    elif isinstance(data, dict):
-        return {key: serialize_data(value) for key, value in data.items()}
-    elif isinstance(data, Decimal):
-        return float(data)  # 或者使用 str(data) 保持更高精度
-    elif isinstance(data, datetime):
-        return data.isoformat()  # 将 datetime 转换为 ISO 格式字符串
-    else:
-        return data
 
 
 # WSGI 应用程序处理函数
